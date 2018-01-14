@@ -1,0 +1,18 @@
+language: go
+go:
+- 1.9
+script: go vet
+before_deploy:
+- "./build.sh"
+deploy:
+  provider: releases
+  api_key:
+    secure: NvHJ1rlXl5hMaQ2iat9/zT0bgTtc+O8AyqBhgJlMHdpXanT1d+zq2ZU6BM6O8nB6jceeocz/ZVmceU3IYCZE9QqYgWMhDphabtLo+ykp7QltQUb4JBqXJ/dIZ/t0nJzMxWbnJ7LrCVs3iXk/jrffCNJXrrO00CC2aT4eu2nS2Vsx3ZZom6Q4kkvu05+iO+3VH6L2obLiUnTPonfZLZQgd4TM+SUaqjvlWOY6/Ubzs6qsf8OpFOazqH7xFkiuDlli5nfpr47Cp0Fw5k0+A9Rk8OmPV6R3LQx9ffOAxbjZDga7qqpohNGZhWgBjMZKc8t/GEHVFHRfRE5bAqG7leEaPJzhyivxP1L4gV/kKBqrEtbvpDIlpCfeHLfL2l65smnN7U4QfA66VY2u/87Ef3YPXo998GMBfdU0YdeuU3yL/EAOSZG/5pnUrwVvPnYQQocnAsYMbYZAzOY8SR/DiT3aFFZ6hL+VkZG4FVWlurL1n5LmGxQWypLE54xQjWtFjcBIEK2eyVHXCCe0rXjDcgHGKbruCWTlbiAN3pqIayQ2W9GpUcAAvTtfzqmFT7wA4rKduY/09rouSF6rCSUCu38uvRx+HGirRahUt11/NlSWYqUAyK2GkNB8yEY2G4dL0KpgN0X6AhJR26UFlgCLb1tTE8Hmexlbnc/rP7/fQfQ1vbY=
+  skip_cleanup: true
+  file:
+    - release/pve_exporter-linux-amd64
+    - release/pve_exporter-linux-amd64.sha256
+  on:
+    repo: wakeful/pve_exporter
+    branch: master
+    tags: true
