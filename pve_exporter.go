@@ -305,7 +305,7 @@ func (e Exporter) Collect(ch chan<- prometheus.Metric) {
 
 	if err := e.pve.Auth(); err != nil {
 		e.up.Set(0)
-		log.Fatal(err)
+		log.Errorln(err)
 	}
 
 	e.up.Set(1)
@@ -313,7 +313,7 @@ func (e Exporter) Collect(ch chan<- prometheus.Metric) {
 
 	nodeList, err := e.pve.GetNodes()
 	if err != nil {
-		log.Fatalln(err)
+		log.Errorln(err)
 	} else {
 		for _, node := range nodeList {
 			ch <- prometheus.MustNewConstMetric(
@@ -337,7 +337,7 @@ func (e Exporter) Collect(ch chan<- prometheus.Metric) {
 
 			lxcList, err := e.pve.GetLxc(node.Name)
 			if err != nil {
-				log.Fatalln(err)
+				log.Errorln(err)
 			} else {
 				for _, lxc := range lxcList {
 
