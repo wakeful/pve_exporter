@@ -305,7 +305,10 @@ func (e Exporter) Collect(ch chan<- prometheus.Metric) {
 
 	if err := e.pve.Auth(); err != nil {
 		e.up.Set(0)
+		ch <- e.up
+
 		log.Errorln(err)
+		return
 	}
 
 	e.up.Set(1)
