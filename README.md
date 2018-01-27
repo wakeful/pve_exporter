@@ -98,6 +98,39 @@ pve_nodes_ram_total{node="pve1"} 2.363011072e+09
 # HELP pve_nodes_up_time UpTime for each node in seconds
 # TYPE pve_nodes_up_time gauge
 pve_nodes_up_time{node="pve1"} 3122
+# HELP pve_qemu_cpu_count Total CPU count for each QEMU VM
+# TYPE pve_qemu_cpu_count gauge
+pve_qemu_cpu_count{node="pve1",qemu="vm12"} 1
+# HELP pve_qemu_disk_free Free disk space for each QEMU VM
+# TYPE pve_qemu_disk_free gauge
+pve_qemu_disk_free{node="pve1",qemu="vm12"} 0
+# HELP pve_qemu_disk_read QEMU VM disk read
+# TYPE pve_qemu_disk_read gauge
+pve_qemu_disk_read{node="pve1",qemu="vm12"} 0
+# HELP pve_qemu_disk_total Disk size for each QEMU VM
+# TYPE pve_qemu_disk_total gauge
+pve_qemu_disk_total{node="pve1",qemu="vm12"} 3.4359738368e+10
+# HELP pve_qemu_disk_write QEMU VM disk write
+# TYPE pve_qemu_disk_write gauge
+pve_qemu_disk_write{node="pve1",qemu="vm12"} 0
+# HELP pve_qemu_net_in QEMU VM Network In
+# TYPE pve_qemu_net_in gauge
+pve_qemu_net_in{node="pve1",qemu="vm12"} 0
+# HELP pve_qemu_net_out QEMU VM Network Out
+# TYPE pve_qemu_net_out gauge
+pve_qemu_net_out{node="pve1",qemu="vm12"} 0
+# HELP pve_qemu_ram_free QEMU VM Free RAM
+# TYPE pve_qemu_ram_free gauge
+pve_qemu_ram_free{node="pve1",qemu="vm12"} 0
+# HELP pve_qemu_ram_total QEMU VM RAM total
+# TYPE pve_qemu_ram_total gauge
+pve_qemu_ram_total{node="pve1",qemu="vm12"} 5.36870912e+08
+# HELP pve_qemu_up is the QEMU VM running
+# TYPE pve_qemu_up gauge
+pve_qemu_up{node="pve1",qemu="vm12"} 0
+# HELP pve_qemu_up_time UpTime for each QEMU VM
+# TYPE pve_qemu_up_time gauge
+pve_qemu_up_time{node="pve1",qemu="vm12"} 0
 # HELP pve_up was the last scrape of PVE successful.
 # TYPE pve_up gauge
 pve_up 1

@@ -66,6 +66,25 @@ type lxcResponse struct {
 	Data []lxc `json:"data"`
 }
 
+type qemu struct {
+	Name      string  `json:"name"`
+	Status    string  `json:"status"`
+	UpTime    float64 `json:"uptime"`
+	CpuCount  float64 `json:"cpus"`
+	DiskTotal float64 `json:"maxdisk"`
+	DiskFree  float64 `json:"disk"`
+	DiskRead  float64 `json:"diskread"`
+	DiskWrite float64 `json:"diskwrite"`
+	RamTotal  float64 `json:"maxmem"`
+	RamFree   float64 `json:"mem"`
+	NetIn     float64 `json:"netin"`
+	NetOut    float64 `json:"netout"`
+}
+
+type qemuResponse struct {
+	Data []qemu `json:"data"`
+}
+
 func NewClient(url, username, password, realm string, timeout int, verifySSL bool) *Client {
 
 	if realm == "" {
@@ -178,6 +197,27 @@ func (c *Client) GetLxc(nodeID string) (data []lxc, err error) {
 	return lxcData.Data, nil
 }
 
+func (c *Client) GetQemu(nodeID string) (data []qemu, err error) {
+
+	var qemuData qemuResponse
+
+	request, err := http.NewRequest("GET", c.url+"nodes/"+nodeID+"/qemu", bytes.NewBufferString(""))
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.call(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(resp, &qemuData); err != nil {
+		return nil, err
+	}
+
+	return qemuData.Data, nil
+}
+
 const nameSpace = "pve"
 
 var (
@@ -288,6 +328,61 @@ var (
 		"LXC Network Out",
 		[]string{"node", "lxc"}, nil,
 	)
+	clusterQemuUp = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "qemu", "up"),
+		"is the QEMU VM running",
+		[]string{"node", "qemu"}, nil,
+	)
+	clusterQemuUpTime = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "qemu", "up_time"),
+		"UpTime for each QEMU VM ",
+		[]string{"node", "qemu"}, nil,
+	)
+	clusterQemuCpuCount = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "qemu", "cpu_count"),
+		"Total CPU count for each QEMU VM",
+		[]string{"node", "qemu"}, nil,
+	)
+	clusterQemuDiskTotal = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "qemu", "disk_total"),
+		"Disk size for each QEMU VM",
+		[]string{"node", "qemu"}, nil,
+	)
+	clusterQemuDiskFree = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "qemu", "disk_free"),
+		"Free disk space for each QEMU VM",
+		[]string{"node", "qemu"}, nil,
+	)
+	clusterQemuDiskRead = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "qemu", "disk_read"),
+		"QEMU VM disk read",
+		[]string{"node", "qemu"}, nil,
+	)
+	clusterQemuDiskWrite = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "qemu", "disk_write"),
+		"QEMU VM disk write",
+		[]string{"node", "qemu"}, nil,
+	)
+	clusterQemuRamTotal = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "qemu", "ram_total"),
+		"QEMU VM RAM total",
+		[]string{"node", "qemu"}, nil,
+	)
+	clusterQemuRamFree = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "qemu", "ram_free"),
+		"QEMU VM Free RAM",
+		[]string{"node", "qemu"}, nil,
+	)
+	clusterQemuNetIn = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "qemu", "net_in"),
+		"QEMU VM Network In",
+		[]string{"node", "qemu"}, nil,
+	)
+	clusterQemuNetOut = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "qemu", "net_out"),
+		"QEMU VM Network Out",
+		[]string{"node", "qemu"}, nil,
+	)
 )
 
 type Exporter struct {
@@ -337,6 +432,54 @@ func (e Exporter) Collect(ch chan<- prometheus.Metric) {
 			ch <- prometheus.MustNewConstMetric(
 				clusterNodeDiskFree, prometheus.GaugeValue, node.DiskFree, node.Name,
 			)
+
+			qemuList, err := e.pve.GetQemu(node.Name)
+			if err != nil {
+				log.Errorln(err)
+			} else {
+				for _, qVM := range qemuList {
+
+					var qVMup float64 = 0
+					if strings.ToLower(qVM.Status) == "running" {
+						qVMup = 1
+					}
+
+					ch <- prometheus.MustNewConstMetric(
+						clusterQemuUp, prometheus.GaugeValue, qVMup, node.Name, qVM.Name,
+					)
+
+					ch <- prometheus.MustNewConstMetric(
+						clusterQemuUpTime, prometheus.GaugeValue, qVM.UpTime, node.Name, qVM.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterQemuCpuCount, prometheus.GaugeValue, qVM.CpuCount, node.Name, qVM.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterQemuDiskTotal, prometheus.GaugeValue, qVM.DiskTotal, node.Name, qVM.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterQemuDiskFree, prometheus.GaugeValue, qVM.DiskFree, node.Name, qVM.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterQemuDiskRead, prometheus.GaugeValue, qVM.DiskRead, node.Name, qVM.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterQemuDiskWrite, prometheus.GaugeValue, qVM.DiskWrite, node.Name, qVM.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterQemuRamTotal, prometheus.GaugeValue, qVM.RamTotal, node.Name, qVM.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterQemuRamFree, prometheus.GaugeValue, qVM.RamFree, node.Name, qVM.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterQemuNetIn, prometheus.GaugeValue, qVM.NetIn, node.Name, qVM.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterQemuNetOut, prometheus.GaugeValue, qVM.NetOut, node.Name, qVM.Name,
+					)
+				}
+			}
 
 			lxcList, err := e.pve.GetLxc(node.Name)
 			if err != nil {
