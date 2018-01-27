@@ -155,16 +155,26 @@ func (c *Client) Auth() (err error) {
 	return nil
 }
 
-func (c *Client) GetNodes() (data []node, err error) {
+func (c *Client) Do(endpoint string) ([]byte, error) {
 
-	var nodeData nodeResponse
-
-	request, err := http.NewRequest("GET", c.url+"nodes", bytes.NewBufferString(""))
+	request, err := http.NewRequest("GET", c.url+endpoint, bytes.NewBufferString(""))
 	if err != nil {
 		return nil, err
 	}
 
 	resp, err := c.call(request)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (c *Client) GetNodes() (data []node, err error) {
+
+	var nodeData nodeResponse
+
+	resp, err := c.Do("nodes")
 	if err != nil {
 		return nil, err
 	}
@@ -180,12 +190,7 @@ func (c *Client) GetLxc(nodeID string) (data []lxc, err error) {
 
 	var lxcData lxcResponse
 
-	request, err := http.NewRequest("GET", c.url+"nodes/"+nodeID+"/lxc", bytes.NewBufferString(""))
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := c.call(request)
+	resp, err := c.Do("nodes/" + nodeID + "/lxc")
 	if err != nil {
 		return nil, err
 	}
@@ -201,12 +206,7 @@ func (c *Client) GetQemu(nodeID string) (data []qemu, err error) {
 
 	var qemuData qemuResponse
 
-	request, err := http.NewRequest("GET", c.url+"nodes/"+nodeID+"/qemu", bytes.NewBufferString(""))
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := c.call(request)
+	resp, err := c.Do("nodes/" + nodeID + "/qemu")
 	if err != nil {
 		return nil, err
 	}
