@@ -4,8 +4,10 @@ A [Prometheus](https://prometheus.io/) exporter that collects [Proxmox VE](https
 
 ### Usage
 
+Download [binary release](https://github.com/wakeful/pve_exporter/releases) or run docker image:
+
 ```sh
-$ ./pve_exporter -h
+$ docker run -it wakeful/pve_exporter -h
 Usage of ./pve_exporter:
   -listen-address string
         Address on which to expose metrics. (default ":9090")
