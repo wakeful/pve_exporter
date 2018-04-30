@@ -26,6 +26,17 @@ Usage of ./pve_exporter:
   -version
         show version and exit
 ```
+### Configuration
+
+| Type   | Flag                            | Environment                    |
+| ------ | :------------------------------ | :----------------------------- |
+| string | -listen-address :9090           | LISTEN_ADDRESS=:9090           |
+| string | -telemetry-path /metrics        | TELEMETRY_PATH=/metrics        |
+| string | -pve-url https://127.0.0.1:8006 | PVE_URL=https://127.0.0.1:8006 |
+| int    | -timeout 5                      | TIMEOUT=5                      |
+| string | -user root                      | USER=root                      |
+| string | -password 1234                  | PASSWORD=1234                  |
+| string | -realm pam                      | REALM=pam                      |
 
 ## Metrics
 
