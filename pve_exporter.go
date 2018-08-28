@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -50,8 +51,8 @@ type lxc struct {
 	Status    string  `json:"status"`
 	UpTime    float64 `json:"uptime"`
 	CpuCount  float64 `json:"cpus"`
-	DiskTotal float64 `json:"maxdisk"`
-	DiskFree  float64 `json:"disk"`
+	DiskTotal string  `json:"maxdisk"`
+	DiskFree  string  `json:"disk"`
 	DiskRead  float64 `json:"diskread"`
 	DiskWrite float64 `json:"diskwrite"`
 	RamTotal  float64 `json:"maxmem"`
@@ -502,12 +503,18 @@ func (e Exporter) Collect(ch chan<- prometheus.Metric) {
 					ch <- prometheus.MustNewConstMetric(
 						clusterLxcCpuCount, prometheus.GaugeValue, lxc.CpuCount, node.Name, lxc.Name,
 					)
-					ch <- prometheus.MustNewConstMetric(
-						clusterLxcDiskTotal, prometheus.GaugeValue, lxc.DiskTotal, node.Name, lxc.Name,
-					)
-					ch <- prometheus.MustNewConstMetric(
-						clusterLxcDiskFree, prometheus.GaugeValue, lxc.DiskFree, node.Name, lxc.Name,
-					)
+					f64DiskTotal, err := strconv.ParseFloat(lxc.DiskTotal, 64)
+					if err == nil {
+						ch <- prometheus.MustNewConstMetric(
+							clusterLxcDiskTotal, prometheus.GaugeValue, f64DiskTotal, node.Name, lxc.Name,
+						)
+					}
+					f64DiskFree, err := strconv.ParseFloat(lxc.DiskFree, 64)
+					if err == nil {
+						ch <- prometheus.MustNewConstMetric(
+							clusterLxcDiskFree, prometheus.GaugeValue, f64DiskFree, node.Name, lxc.Name,
+						)
+					}
 					ch <- prometheus.MustNewConstMetric(
 						clusterLxcDiskRead, prometheus.GaugeValue, lxc.DiskRead, node.Name, lxc.Name,
 					)
