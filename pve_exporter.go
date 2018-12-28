@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -34,12 +33,12 @@ type Client struct {
 type node struct {
 	Id        string  `json:"id"`
 	Name      string  `json:"node"`
-	UpTime    float64 `json:"uptime"`
-	CpuTotal  float64 `json:"maxcpu"`
-	RamTotal  float64 `json:"maxmem"`
-	RamFree   float64 `json:"mem"`
-	DiskTotal float64 `json:"maxdisk"`
-	DiskFree  float64 `json:"disk"`
+	UpTime    json.Number `json:"uptime"`
+	CpuTotal  json.Number `json:"maxcpu"`
+	RamTotal  json.Number `json:"maxmem"`
+	RamFree   json.Number `json:"mem"`
+	DiskTotal json.Number `json:"maxdisk"`
+	DiskFree  json.Number `json:"disk"`
 }
 
 type nodeResponse struct {
@@ -49,18 +48,18 @@ type nodeResponse struct {
 type lxc struct {
 	Name      string  `json:"name"`
 	Status    string  `json:"status"`
-	UpTime    float64 `json:"uptime"`
-	CpuCount  float64 `json:"cpus"`
-	DiskTotal string  `json:"maxdisk"`
-	DiskFree  string  `json:"disk"`
-	DiskRead  float64 `json:"diskread"`
-	DiskWrite float64 `json:"diskwrite"`
-	RamTotal  float64 `json:"maxmem"`
-	RamFree   float64 `json:"mem"`
-	SwapTotal float64 `json:"maxswap"`
-	SwapFree  float64 `json:"swap"`
-	NetIn     float64 `json:"netin"`
-	NetOut    float64 `json:"netout"`
+	UpTime    json.Number `json:"uptime"`
+	CpuCount  json.Number `json:"cpus"`
+	DiskTotal json.Number  `json:"maxdisk"`
+	DiskFree  json.Number  `json:"disk"`
+	DiskRead  json.Number `json:"diskread"`
+	DiskWrite json.Number `json:"diskwrite"`
+	RamTotal  json.Number `json:"maxmem"`
+	RamFree   json.Number `json:"mem"`
+	SwapTotal json.Number `json:"maxswap"`
+	SwapFree  json.Number `json:"swap"`
+	NetIn     json.Number `json:"netin"`
+	NetOut    json.Number `json:"netout"`
 }
 
 type lxcResponse struct {
@@ -70,20 +69,28 @@ type lxcResponse struct {
 type qemu struct {
 	Name      string  `json:"name"`
 	Status    string  `json:"status"`
-	UpTime    float64 `json:"uptime"`
-	CpuCount  float64 `json:"cpus"`
-	DiskTotal float64 `json:"maxdisk"`
-	DiskFree  float64 `json:"disk"`
-	DiskRead  float64 `json:"diskread"`
-	DiskWrite float64 `json:"diskwrite"`
-	RamTotal  float64 `json:"maxmem"`
-	RamFree   float64 `json:"mem"`
-	NetIn     float64 `json:"netin"`
-	NetOut    float64 `json:"netout"`
+	UpTime    json.Number `json:"uptime"`
+	CpuCount  json.Number `json:"cpus"`
+	DiskTotal json.Number `json:"maxdisk"`
+	DiskFree  json.Number `json:"disk"`
+	DiskRead  json.Number `json:"diskread"`
+	DiskWrite json.Number `json:"diskwrite"`
+	RamTotal  json.Number `json:"maxmem"`
+	RamFree   json.Number `json:"mem"`
+	NetIn     json.Number `json:"netin"`
+	NetOut    json.Number `json:"netout"`
 }
 
 type qemuResponse struct {
 	Data []qemu `json:"data"`
+}
+
+func mu(a ...interface{}) []interface{} {
+    return a
+}
+
+func jNumberToFloat(number json.Number) float64 {
+	return mu(number.Float64())[0].(float64)
 }
 
 func NewClient(url, username, password, realm string, timeout int, verifySSL bool) *Client {
@@ -416,22 +423,22 @@ func (e Exporter) Collect(ch chan<- prometheus.Metric) {
 	} else {
 		for _, node := range nodeList {
 			ch <- prometheus.MustNewConstMetric(
-				clusterNodeUpTime, prometheus.GaugeValue, node.UpTime, node.Name,
+				clusterNodeUpTime, prometheus.GaugeValue, jNumberToFloat(node.UpTime), node.Name,
 			)
 			ch <- prometheus.MustNewConstMetric(
-				clusterNodeCpuTotal, prometheus.GaugeValue, node.CpuTotal, node.Name,
+				clusterNodeCpuTotal, prometheus.GaugeValue,jNumberToFloat(node.CpuTotal), node.Name,
 			)
 			ch <- prometheus.MustNewConstMetric(
-				clusterNodeRamTotal, prometheus.GaugeValue, node.RamTotal, node.Name,
+				clusterNodeRamTotal, prometheus.GaugeValue, jNumberToFloat(node.RamTotal), node.Name,
 			)
 			ch <- prometheus.MustNewConstMetric(
-				clusterNodeRamFree, prometheus.GaugeValue, node.RamFree, node.Name,
+				clusterNodeRamFree, prometheus.GaugeValue, jNumberToFloat(node.RamFree), node.Name,
 			)
 			ch <- prometheus.MustNewConstMetric(
-				clusterNodeDiskTotal, prometheus.GaugeValue, node.DiskTotal, node.Name,
+				clusterNodeDiskTotal, prometheus.GaugeValue, jNumberToFloat(node.DiskTotal), node.Name,
 			)
 			ch <- prometheus.MustNewConstMetric(
-				clusterNodeDiskFree, prometheus.GaugeValue, node.DiskFree, node.Name,
+				clusterNodeDiskFree, prometheus.GaugeValue, jNumberToFloat(node.DiskFree), node.Name,
 			)
 
 			qemuList, err := e.pve.GetQemu(node.Name)
@@ -450,34 +457,34 @@ func (e Exporter) Collect(ch chan<- prometheus.Metric) {
 					)
 
 					ch <- prometheus.MustNewConstMetric(
-						clusterQemuUpTime, prometheus.GaugeValue, qVM.UpTime, node.Name, qVM.Name,
+						clusterQemuUpTime, prometheus.GaugeValue, jNumberToFloat(qVM.UpTime), node.Name, qVM.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterQemuCpuCount, prometheus.GaugeValue, qVM.CpuCount, node.Name, qVM.Name,
+						clusterQemuCpuCount, prometheus.GaugeValue, jNumberToFloat(qVM.CpuCount), node.Name, qVM.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterQemuDiskTotal, prometheus.GaugeValue, qVM.DiskTotal, node.Name, qVM.Name,
+						clusterQemuDiskTotal, prometheus.GaugeValue, jNumberToFloat(qVM.DiskTotal), node.Name, qVM.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterQemuDiskFree, prometheus.GaugeValue, qVM.DiskFree, node.Name, qVM.Name,
+						clusterQemuDiskFree, prometheus.GaugeValue, jNumberToFloat(qVM.DiskFree), node.Name, qVM.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterQemuDiskRead, prometheus.GaugeValue, qVM.DiskRead, node.Name, qVM.Name,
+						clusterQemuDiskRead, prometheus.GaugeValue, jNumberToFloat(qVM.DiskRead), node.Name, qVM.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterQemuDiskWrite, prometheus.GaugeValue, qVM.DiskWrite, node.Name, qVM.Name,
+						clusterQemuDiskWrite, prometheus.GaugeValue, jNumberToFloat(qVM.DiskWrite), node.Name, qVM.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterQemuRamTotal, prometheus.GaugeValue, qVM.RamTotal, node.Name, qVM.Name,
+						clusterQemuRamTotal, prometheus.GaugeValue, jNumberToFloat(qVM.RamTotal), node.Name, qVM.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterQemuRamFree, prometheus.GaugeValue, qVM.RamFree, node.Name, qVM.Name,
+						clusterQemuRamFree, prometheus.GaugeValue, jNumberToFloat(qVM.RamFree), node.Name, qVM.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterQemuNetIn, prometheus.GaugeValue, qVM.NetIn, node.Name, qVM.Name,
+						clusterQemuNetIn, prometheus.GaugeValue, jNumberToFloat(qVM.NetIn), node.Name, qVM.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterQemuNetOut, prometheus.GaugeValue, qVM.NetOut, node.Name, qVM.Name,
+						clusterQemuNetOut, prometheus.GaugeValue, jNumberToFloat(qVM.NetOut), node.Name, qVM.Name,
 					)
 				}
 			}
@@ -498,46 +505,40 @@ func (e Exporter) Collect(ch chan<- prometheus.Metric) {
 					)
 
 					ch <- prometheus.MustNewConstMetric(
-						clusterLxcUpTime, prometheus.GaugeValue, lxc.UpTime, node.Name, lxc.Name,
+						clusterLxcUpTime, prometheus.GaugeValue, jNumberToFloat(lxc.UpTime), node.Name, lxc.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterLxcCpuCount, prometheus.GaugeValue, lxc.CpuCount, node.Name, lxc.Name,
-					)
-					f64DiskTotal, err := strconv.ParseFloat(lxc.DiskTotal, 64)
-					if err == nil {
-						ch <- prometheus.MustNewConstMetric(
-							clusterLxcDiskTotal, prometheus.GaugeValue, f64DiskTotal, node.Name, lxc.Name,
-						)
-					}
-					f64DiskFree, err := strconv.ParseFloat(lxc.DiskFree, 64)
-					if err == nil {
-						ch <- prometheus.MustNewConstMetric(
-							clusterLxcDiskFree, prometheus.GaugeValue, f64DiskFree, node.Name, lxc.Name,
-						)
-					}
-					ch <- prometheus.MustNewConstMetric(
-						clusterLxcDiskRead, prometheus.GaugeValue, lxc.DiskRead, node.Name, lxc.Name,
+						clusterLxcCpuCount, prometheus.GaugeValue, jNumberToFloat(lxc.CpuCount), node.Name, lxc.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterLxcDiskWrite, prometheus.GaugeValue, lxc.DiskWrite, node.Name, lxc.Name,
+						clusterLxcDiskTotal, prometheus.GaugeValue, jNumberToFloat(lxc.DiskTotal), node.Name, lxc.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterLxcRamTotal, prometheus.GaugeValue, lxc.RamTotal, node.Name, lxc.Name,
+						clusterLxcDiskFree, prometheus.GaugeValue, jNumberToFloat(lxc.DiskFree), node.Name, lxc.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterLxcRamFree, prometheus.GaugeValue, lxc.RamFree, node.Name, lxc.Name,
+						clusterLxcDiskRead, prometheus.GaugeValue, jNumberToFloat(lxc.DiskRead), node.Name, lxc.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterLxcSwapTotal, prometheus.GaugeValue, lxc.SwapTotal, node.Name, lxc.Name,
+						clusterLxcDiskWrite, prometheus.GaugeValue, jNumberToFloat(lxc.DiskWrite), node.Name, lxc.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterLxcSwapFree, prometheus.GaugeValue, lxc.SwapFree, node.Name, lxc.Name,
+						clusterLxcRamTotal, prometheus.GaugeValue, jNumberToFloat(lxc.RamTotal), node.Name, lxc.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterLxcNetIn, prometheus.GaugeValue, lxc.NetIn, node.Name, lxc.Name,
+						clusterLxcRamFree, prometheus.GaugeValue, jNumberToFloat(lxc.RamFree), node.Name, lxc.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
-						clusterLxcNetOut, prometheus.GaugeValue, lxc.NetOut, node.Name, lxc.Name,
+						clusterLxcSwapTotal, prometheus.GaugeValue, jNumberToFloat(lxc.SwapTotal), node.Name, lxc.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterLxcSwapFree, prometheus.GaugeValue, jNumberToFloat(lxc.SwapFree), node.Name, lxc.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterLxcNetIn, prometheus.GaugeValue, jNumberToFloat(lxc.NetIn), node.Name, lxc.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterLxcNetOut, prometheus.GaugeValue, jNumberToFloat(lxc.NetOut), node.Name, lxc.Name,
 					)
 				}
 			}
@@ -572,7 +573,7 @@ func main() {
 	log.Infoln("Starting pve_exporter")
 
 	prometheus.Unregister(prometheus.NewGoCollector())
-	prometheus.Unregister(prometheus.NewProcessCollector(os.Getegid(), ""))
+	prometheus.Unregister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
 	prometheus.MustRegister(NewExporter())
 
 	http.Handle(*metricsPath, promhttp.Handler())
