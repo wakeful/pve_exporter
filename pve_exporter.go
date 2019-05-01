@@ -35,6 +35,7 @@ type node struct {
 	Name      string  `json:"node"`
 	UpTime    json.Number `json:"uptime"`
 	CpuTotal  json.Number `json:"maxcpu"`
+	CpuUsage  json.Number `json:"cpu"`
 	RamTotal  json.Number `json:"maxmem"`
 	RamFree   json.Number `json:"mem"`
 	DiskTotal json.Number `json:"maxdisk"`
@@ -50,6 +51,7 @@ type lxc struct {
 	Status    string  `json:"status"`
 	UpTime    json.Number `json:"uptime"`
 	CpuCount  json.Number `json:"cpus"`
+	CpuUsage  json.Number `json:"cpu"`
 	DiskTotal json.Number  `json:"maxdisk"`
 	DiskFree  json.Number  `json:"disk"`
 	DiskRead  json.Number `json:"diskread"`
@@ -71,6 +73,7 @@ type qemu struct {
 	Status    string  `json:"status"`
 	UpTime    json.Number `json:"uptime"`
 	CpuCount  json.Number `json:"cpus"`
+	CpuUsage  json.Number `json:"cpu"`
 	DiskTotal json.Number `json:"maxdisk"`
 	DiskFree  json.Number `json:"disk"`
 	DiskRead  json.Number `json:"diskread"`
@@ -251,6 +254,11 @@ var (
 		"Total CPU count on each node",
 		[]string{"node"}, nil,
 	)
+	clusterNodeCpuUsage = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "nodes", "cpu_usage"),
+		"CPU usage on each node",
+		[]string{"node"}, nil,
+	)
 	clusterNodeRamTotal = prometheus.NewDesc(
 		prometheus.BuildFQName(nameSpace, "nodes", "ram_total"),
 		"Total RAM on each node",
@@ -284,6 +292,11 @@ var (
 	clusterLxcCpuCount = prometheus.NewDesc(
 		prometheus.BuildFQName(nameSpace, "lxc", "cpu_count"),
 		"Total CPU count for each LXC",
+		[]string{"node", "lxc"}, nil,
+	)
+	clusterLxcCpuUsage = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "lxc", "cpu_usage"),
+		"CPU usage for each LXC",
 		[]string{"node", "lxc"}, nil,
 	)
 	clusterLxcDiskTotal = prometheus.NewDesc(
@@ -349,6 +362,11 @@ var (
 	clusterQemuCpuCount = prometheus.NewDesc(
 		prometheus.BuildFQName(nameSpace, "qemu", "cpu_count"),
 		"Total CPU count for each QEMU VM",
+		[]string{"node", "qemu"}, nil,
+	)
+	clusterQemuCpuUsage = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "qemu", "cpu_usage"),
+		"CPU usage for each QEMU VM",
 		[]string{"node", "qemu"}, nil,
 	)
 	clusterQemuDiskTotal = prometheus.NewDesc(
@@ -426,7 +444,10 @@ func (e Exporter) Collect(ch chan<- prometheus.Metric) {
 				clusterNodeUpTime, prometheus.GaugeValue, jNumberToFloat(node.UpTime), node.Name,
 			)
 			ch <- prometheus.MustNewConstMetric(
-				clusterNodeCpuTotal, prometheus.GaugeValue,jNumberToFloat(node.CpuTotal), node.Name,
+				clusterNodeCpuTotal, prometheus.GaugeValue, jNumberToFloat(node.CpuTotal), node.Name,
+			)
+			ch <- prometheus.MustNewConstMetric(
+				clusterNodeCpuUsage, prometheus.GaugeValue, jNumberToFloat(node.CpuUsage), node.Name,
 			)
 			ch <- prometheus.MustNewConstMetric(
 				clusterNodeRamTotal, prometheus.GaugeValue, jNumberToFloat(node.RamTotal), node.Name,
@@ -461,6 +482,9 @@ func (e Exporter) Collect(ch chan<- prometheus.Metric) {
 					)
 					ch <- prometheus.MustNewConstMetric(
 						clusterQemuCpuCount, prometheus.GaugeValue, jNumberToFloat(qVM.CpuCount), node.Name, qVM.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterQemuCpuUsage, prometheus.GaugeValue, jNumberToFloat(qVM.CpuUsage), node.Name, qVM.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
 						clusterQemuDiskTotal, prometheus.GaugeValue, jNumberToFloat(qVM.DiskTotal), node.Name, qVM.Name,
@@ -509,6 +533,9 @@ func (e Exporter) Collect(ch chan<- prometheus.Metric) {
 					)
 					ch <- prometheus.MustNewConstMetric(
 						clusterLxcCpuCount, prometheus.GaugeValue, jNumberToFloat(lxc.CpuCount), node.Name, lxc.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						clusterLxcCpuUsage, prometheus.GaugeValue, jNumberToFloat(lxc.CpuUsage), node.Name, lxc.Name,
 					)
 					ch <- prometheus.MustNewConstMetric(
 						clusterLxcDiskTotal, prometheus.GaugeValue, jNumberToFloat(lxc.DiskTotal), node.Name, lxc.Name,
