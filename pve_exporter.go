@@ -31,8 +31,8 @@ type Client struct {
 }
 
 type node struct {
-	Id        string  `json:"id"`
-	Name      string  `json:"node"`
+	Id        string      `json:"id"`
+	Name      string      `json:"node"`
 	UpTime    json.Number `json:"uptime"`
 	CpuTotal  json.Number `json:"maxcpu"`
 	CpuUsage  json.Number `json:"cpu"`
@@ -47,13 +47,13 @@ type nodeResponse struct {
 }
 
 type lxc struct {
-	Name      string  `json:"name"`
-	Status    string  `json:"status"`
+	Name      string      `json:"name"`
+	Status    string      `json:"status"`
 	UpTime    json.Number `json:"uptime"`
 	CpuCount  json.Number `json:"cpus"`
 	CpuUsage  json.Number `json:"cpu"`
-	DiskTotal json.Number  `json:"maxdisk"`
-	DiskFree  json.Number  `json:"disk"`
+	DiskTotal json.Number `json:"maxdisk"`
+	DiskFree  json.Number `json:"disk"`
 	DiskRead  json.Number `json:"diskread"`
 	DiskWrite json.Number `json:"diskwrite"`
 	RamTotal  json.Number `json:"maxmem"`
@@ -69,8 +69,8 @@ type lxcResponse struct {
 }
 
 type qemu struct {
-	Name      string  `json:"name"`
-	Status    string  `json:"status"`
+	Name      string      `json:"name"`
+	Status    string      `json:"status"`
 	UpTime    json.Number `json:"uptime"`
 	CpuCount  json.Number `json:"cpus"`
 	CpuUsage  json.Number `json:"cpu"`
@@ -89,7 +89,7 @@ type qemuResponse struct {
 }
 
 func mu(a ...interface{}) []interface{} {
-    return a
+	return a
 }
 
 func jNumberToFloat(number json.Number) float64 {
