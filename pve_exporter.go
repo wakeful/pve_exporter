@@ -131,7 +131,12 @@ func (c *Client) call(request *http.Request) (message []byte, err error) {
 		return nil, err
 	}
 
-	defer response.Body.Close()
+	defer func() {
+		err = response.Body.Close()
+		if err != nil {
+			log.Errorf("Can't close connection: %v", err)
+		}
+	}()
 	message, err = ioutil.ReadAll(response.Body)
 
 	if err != nil {
