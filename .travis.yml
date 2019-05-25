@@ -1,6 +1,8 @@
 language: go
 go:
-- 1.9
+- 1.12
+env:
+- GO111MODULE=on
 script: go vet
 before_deploy:
 - "./build.sh"
