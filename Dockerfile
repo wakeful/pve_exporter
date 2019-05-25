@@ -6,8 +6,7 @@ RUN apk add --update git make build-base bash && \
 
 WORKDIR /go/src/github.com/wakeful/pve_exporter
 COPY . /go/src/github.com/wakeful/pve_exporter
-RUN go get -v -u ./... && \
-    ./build.sh
+RUN ./build.sh
 
 # Runtime
 FROM scratch
